@@ -1,0 +1,52 @@
+# Original practice card. These hands follow the usual American families but are
+# not the official NMJL card. Format: family | pattern | points | X (exposed ok) or C (concealed) | run
+# a/b/c = three different suits, D = dragon matching that suit, 0 = Soap, F = flower.
+# run N = every number may shift up by 0..N (any consecutive / like numbers).
+
+2026      | FFFF 2026a 222b 666c          | 25 | X | 0
+2026      | 222a 0000 222b 6666c          | 25 | X | 0
+2026      | FFF NNN 2026a SSSS            | 30 | X | 0
+2026      | FF 2026a 2026b 2026c          | 50 | C | 0
+
+2468      | 222a 4444a 666a 8888a         | 25 | X | 0
+2468      | FF 2222a 44a 66b 8888b        | 25 | X | 0
+2468      | 22a 444a 66b 888b DDDDc       | 25 | X | 0
+2468      | FFFF 2468a 222b 888c          | 30 | X | 0
+2468      | 22a 44a 66a 88a 2468b FF      | 50 | C | 0
+
+Like Numbers | FF 1111a 1111b 1111c       | 25 | X | 8
+Like Numbers | 111a DDDa 111b DDDb FF     | 30 | X | 8
+Like Numbers | FF 111a 1111b 111c DDa     | 30 | X | 8
+
+Addition  | FF 3333a 4444a 7777a          | 25 | X | 0
+Addition  | FF 2222a 6666b 8888c          | 25 | X | 0
+Addition  | FFFF 1111a 5555b 66c          | 30 | X | 0
+
+Quints    | FF 11111a 2222a 333a          | 40 | X | 6
+Quints    | NNNNN 22222a 3333b            | 45 | X | 6
+Quints    | 11111a DDDDa 11111b           | 45 | X | 8
+
+Consecutive | 11a 222a 3333a 444a 55a     | 25 | X | 4
+Consecutive | 111a 2222a 333b 4444b       | 25 | X | 5
+Consecutive | FFFF 1111a 22b 3333c        | 30 | X | 6
+Consecutive | 112233a 1111b 2222c         | 30 | X | 6
+Consecutive | 1234a 1234b DDDDc FF        | 50 | C | 5
+
+13579     | 11a 333a 5555a 777a 99a       | 25 | X | 0
+13579     | 111a 3333a 555b 7777b         | 25 | X | 0
+13579     | FFFF 1111a 9999b 11c          | 30 | X | 0
+13579     | 13579a 13579b FFFF            | 50 | C | 0
+
+Winds & Dragons | NNNN EEE WWW SSSS       | 25 | X | 0
+Winds & Dragons | FF NNN EEE WWW SSS      | 25 | X | 0
+Winds & Dragons | NN EE WW SS DDDa DDDb   | 30 | X | 0
+Winds & Dragons | FFFF DDDDa DDDb DDDc    | 30 | X | 0
+Winds & Dragons | NEWS NEWS DDDa FFF      | 50 | C | 0
+
+369       | 333a 6666a 999a FFFF          | 25 | X | 0
+369       | 3333a 666b 666c 9999a         | 25 | X | 0
+369       | FFF 369a 3333b 9999c          | 30 | X | 0
+369       | 33a 66a 99a 369b 369c FF      | 50 | C | 0
+
+Singles & Pairs | FF 11a 22a 33a 44a 55a 66a  | 50 | C | 3
+Singles & Pairs | NN SS 11a 22a 33b 44b DDc   | 50 | C | 5

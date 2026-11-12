@@ -98,10 +98,36 @@ class CardTest {
     }
 
     @Test
+    fun bestForTracksOneChosenHand() {
+        val year = card.hands.first { it.pattern == "FFFF 2026a 222b 666c" }
+        val h = yearWin.copyOf()
+        h[Kinds.FLOWER] -= 2
+        val e = card.bestFor(year.id, h, emptyList())
+        assertNotNull(e)
+        assertEquals(year.id, e.instance.hand.id)
+        assertEquals(2, e.missing)
+        // A concealed hand can't be targeted once something is exposed.
+        val concealed = card.hands.first { it.concealed }
+        assertNull(card.bestFor(concealed.id, h, listOf(Meld(c(2), 3))))
+    }
+
+    @Test
     fun runHandsShift() {
         // "11a 222a 3333a 444a 55a" run 4 -> 55 666 7777 888 99 in dots is valid
         val h = counts(d(5) to 2, d(6) to 3, d(7) to 4, d(8) to 3, d(9) to 2)
         assertNotNull(card.findWin(h, emptyList()))
+    }
+
+    @Test
+    fun breakdownShowsProgressPerGroup() {
+        val h = yearWin.copyOf()
+        h[d(6)] -= 2; h[Kinds.JOKER] += 1 // 666 Dot now one real 6 + a joker
+        val inst = card.instances.first { it.hand.pattern == "FFFF 2026a 222b 666c" && card.missing(it, yearWin, MeldInfo.NONE) == 0 }
+        val parts = card.breakdown(inst, h, emptyList())
+        val six = parts.first { it.kind == d(6) }
+        assertEquals(1, six.real)
+        assertEquals(1, six.jokers)
+        assertEquals(14 - 1, parts.sumOf { it.have })
     }
 
     @Test

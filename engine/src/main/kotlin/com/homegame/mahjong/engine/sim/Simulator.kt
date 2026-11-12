@@ -26,14 +26,20 @@ fun playOut(card: Card, bots: List<Bot>, seed: Long, rules: Rules = Rules()): Ga
 }
 
 /**
- * Bot-vs-bot tournament. Each game seats one bot of every difficulty plus a second
- * Intermediate, rotating seats so nobody keeps the East advantage.
- * Usage: gradlew :engine:run --args="2000"
+ * Bot-vs-bot tournament. Each game seats one bot of every difficulty, rotating seats so
+ * nobody keeps the East advantage. A second arg picks the table, e.g. "AAAE" for three
+ * Advanced and one Expert.
+ * Usage: gradlew :engine:run --args="2000"  or  --args="2000 AAAE"
  */
 fun main(args: Array<String>) {
+    when (args.firstOrNull()) {
+        "ladder" -> return ladder(args.getOrNull(1)?.toIntOrNull() ?: 300)
+        "rivals" -> return rivals(args.getOrNull(1)?.toIntOrNull() ?: 300, args.getOrNull(2)?.toIntOrNull() ?: 8)
+    }
     val games = args.firstOrNull()?.toIntOrNull() ?: 1000
     val card = Card.practice()
-    val lineup = listOf(Difficulty.BEGINNER, Difficulty.INTERMEDIATE, Difficulty.ADVANCED, Difficulty.INTERMEDIATE)
+    val lineup = args.getOrNull(1)?.map { c -> Difficulty.entries.first { it.label.first() == c } }
+        ?: Difficulty.entries.toList()
     val wins = HashMap<Difficulty, Int>()
     val seats = HashMap<Difficulty, Int>()
     val points = HashMap<Difficulty, Long>()
@@ -76,3 +82,45 @@ fun main(args: Array<String>) {
 }
 
 private fun pct(a: Int, b: Int) = if (b == 0) "-" else "%.1f%%".format(100.0 * a / b)
+
+/** One bot against three fixed opponents, rotating seats. Returns (win rate, avg points). */
+private fun versus(card: Card, hero: () -> Bot, field: () -> Bot, games: Int, salt: Long): Pair<Double, Double> {
+    var wins = 0
+    var pts = 0L
+    for (g in 0 until games) {
+        val heroSeat = g % 4
+        val bots = List(4) { if (it == heroSeat) hero() else field() }
+        val r = (playOut(card, bots, seed = salt * 100_003 + g).phase as Phase.Over).result
+        if (r.winner == heroSeat) wins++
+        pts += r.payments[heroSeat]
+    }
+    return wins.toDouble() / games to pts.toDouble() / games
+}
+
+/** Circuit skill levels 1..18 against three Intermediate bots. Should climb steadily. */
+private fun ladder(games: Int) {
+    val card = Card.practice()
+    println("Level   Win rate   Avg points   (vs 3 Intermediate, $games games each)")
+    var salt = 1L
+    for (l in 1..com.homegame.mahjong.engine.career.MAX_LEVEL) {
+        val (w, p) = versus(card, { HeuristicBot(com.homegame.mahjong.engine.career.skill(l), salt++) },
+            { HeuristicBot(Difficulty.INTERMEDIATE, salt++) }, games, l.toLong())
+        println("%5d   %7.1f%%   %10.1f".format(l, 100 * w, p))
+    }
+}
+
+/** Every rival at [level] against three plain bots of the same level. Style should cost little. */
+private fun rivals(games: Int, level: Int) {
+    val card = Card.practice()
+    println("Rival           Win rate   Avg points   (level $level vs 3 plain level-$level bots, $games games)")
+    var salt = 1L
+    val (bw, bp) = versus(card, { HeuristicBot(com.homegame.mahjong.engine.career.skill(level), salt++) },
+        { HeuristicBot(com.homegame.mahjong.engine.career.skill(level), salt++) }, games, 7)
+    println("%-15s %7.1f%%   %10.1f".format("(plain)", 100 * bw, bp))
+    for (r in com.homegame.mahjong.engine.career.Rivals.all) {
+        val rng = kotlin.random.Random(salt)
+        val (w, p) = versus(card, { HeuristicBot(r.profile(level, rng), salt++) },
+            { HeuristicBot(com.homegame.mahjong.engine.career.skill(level), salt++) }, games, 7)
+        println("%-15s %7.1f%%   %10.1f".format(r.name, 100 * w, p))
+    }
+}

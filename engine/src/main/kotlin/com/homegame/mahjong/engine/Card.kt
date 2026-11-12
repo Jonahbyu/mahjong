@@ -147,6 +147,10 @@ class MeldInfo(melds: List<Meld>) {
 
 class Evaluation(val instance: HandInstance, val missing: Int)
 
+data class GroupProgress(val kind: Int, val size: Int, val real: Int, val jokers: Int, val exposed: Boolean) {
+    val have get() = real + jokers
+}
+
 class Card(val name: String, val hands: List<CardHand>) {
     val instances: List<HandInstance> = hands.flatMap { HandInstance.expand(it) }
 
@@ -208,6 +212,19 @@ class Card(val name: String, val hands: List<CardHand>) {
             .toList()
     }
 
+    /**
+     * The closest way to make one specific card hand (best suits and run offset), or null if
+     * no version of it fits the exposures any more.
+     */
+    fun bestFor(handId: String, counts: IntArray, melds: List<Meld>): Evaluation? {
+        val mi = MeldInfo(melds)
+        return instances.asSequence()
+            .filter { it.hand.id == handId }
+            .map { Evaluation(it, missing(it, counts, mi)) }
+            .filter { it.missing < IMPOSSIBLE }
+            .minByOrNull { it.missing }
+    }
+
     /** The winning instance (highest points) if these 14 tiles make a hand, else null. */
     fun findWin(counts: IntArray, melds: List<Meld>): HandInstance? {
         val mi = MeldInfo(melds)
@@ -220,6 +237,39 @@ class Card(val name: String, val hands: List<CardHand>) {
         val mi = MeldInfo(melds)
         val zero = IntArray(Kinds.COUNT)
         return instances.any { missing(it, zero, mi) < IMPOSSIBLE }
+    }
+
+    /**
+     * Group-by-group progress toward [inst] for the hint panel: how many real tiles and jokers
+     * the player already has toward each group. Exposed groups come back complete.
+     */
+    fun breakdown(inst: HandInstance, counts: IntArray, melds: List<Meld>): List<GroupProgress> {
+        val c = counts.copyOf()
+        val openMelds = melds.toMutableList()
+        val out = arrayOfNulls<GroupProgress>(inst.groups.size)
+        inst.groups.forEachIndexed { i, g ->
+            val m = openMelds.indexOf(g)
+            if (m >= 0) {
+                openMelds.removeAt(m)
+                out[i] = GroupProgress(g.kind, g.size, g.size, 0, exposed = true)
+            }
+        }
+        // Singles and pairs first: they can only use real tiles.
+        for (pass in 0..1) inst.groups.forEachIndexed { i, g ->
+            if (out[i] != null || (g.size >= 3) != (pass == 1)) return@forEachIndexed
+            val take = minOf(c[g.kind], g.size)
+            c[g.kind] -= take
+            out[i] = GroupProgress(g.kind, g.size, take, 0, exposed = false)
+        }
+        inst.groups.forEachIndexed { i, g ->
+            val p = out[i]!!
+            if (g.size >= 3 && !p.exposed && p.real < g.size) {
+                val j = minOf(c[Kinds.JOKER], g.size - p.real)
+                c[Kinds.JOKER] -= j
+                out[i] = p.copy(jokers = j)
+            }
+        }
+        return out.map { it!! }
     }
 
     /** Kinds that some hand fitting these exposures still needs (for reading opponents). */

@@ -74,7 +74,8 @@ class GameTest {
 
     @Test
     fun botGamesFinishLegallyAndConserveTiles() {
-        val levels = Difficulty.entries + Difficulty.INTERMEDIATE
+        val levels = Difficulty.entries // one of each, Expert included
+        check(levels.size == 4)
         repeat(60) { i ->
             val bots = levels.mapIndexed { s, d -> HeuristicBot(d, seed = i * 7L + s) }
             val g = playOut(card, bots, seed = i.toLong())

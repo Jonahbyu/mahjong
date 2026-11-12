@@ -28,9 +28,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.homegame.mahjong.TableViewModel
+import com.homegame.mahjong.update.UpdateState
+import com.homegame.mahjong.update.UpdateViewModel
 
 @Composable
-fun SettingsScreen(vm: TableViewModel, onClose: () -> Unit) {
+fun SettingsScreen(vm: TableViewModel, updates: UpdateViewModel, onClose: () -> Unit) {
     BackHandler(onBack = onClose)
     val hasMusic = remember { vm.music.hasAnyTracks }
     val context = LocalContext.current
@@ -76,6 +78,24 @@ fun SettingsScreen(vm: TableViewModel, onClose: () -> Unit) {
             Section("Bot speed") {
                 Segmented(com.homegame.mahjong.BotSpeed.entries.map { it.label }, com.homegame.mahjong.BotSpeed.entries.indexOf(vm.speed)) {
                     vm.speed = com.homegame.mahjong.BotSpeed.entries[it]
+                }
+            }
+            Section("Updates") {
+                Text("Version ${updates.versionName}", color = Ivory, fontWeight = FontWeight.Bold)
+                if (updates.canUpdate) {
+                    val s = updates.state
+                    BigButton(
+                        if (s is UpdateState.Checking) "Checking…" else "Check for updates",
+                        Modifier.fillMaxWidth(),
+                        enabled = s !is UpdateState.Checking && s !is UpdateState.Downloading,
+                    ) { updates.check(manual = true) }
+                    when (s) {
+                        is UpdateState.UpToDate -> Text("You have the latest version.", color = Soft, fontSize = 13.sp)
+                        is UpdateState.Available -> Text("Version ${s.release.name} is available.", color = Gold, fontSize = 13.sp)
+                        else -> Text("Mahjong checks for a new version each time it opens.", color = Soft, fontSize = 13.sp)
+                    }
+                } else {
+                    Text("Test build. Updates only apply to builds downloaded from the release page.", color = Soft, fontSize = 13.sp)
                 }
             }
             if (debuggable) Section("Testing") {

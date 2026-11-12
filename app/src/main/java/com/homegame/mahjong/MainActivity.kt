@@ -20,9 +20,12 @@ import com.homegame.mahjong.ui.LocalTileSkin
 import com.homegame.mahjong.ui.MotionClock
 import com.homegame.mahjong.ui.SettingsScreen
 import com.homegame.mahjong.ui.TableScreen
+import com.homegame.mahjong.ui.UpdateDialog
+import com.homegame.mahjong.update.UpdateViewModel
 
 class MainActivity : ComponentActivity() {
     private val vm: TableViewModel by viewModels()
+    private val updates: UpdateViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,7 +38,7 @@ class MainActivity : ComponentActivity() {
                     LaunchedEffect(Unit) { vm.music.start() }
                     MotionClock()
                     when {
-                        settings -> SettingsScreen(vm, onClose = { settings = false })
+                        settings -> SettingsScreen(vm, updates, onClose = { settings = false })
                         guide -> {
                             BackHandler { guide = false }
                             HowToPlayScreen(onClose = { guide = false })
@@ -46,6 +49,7 @@ class MainActivity : ComponentActivity() {
                             TableScreen(vm, onHelp = { guide = true }, onSettings = { settings = true })
                         }
                     }
+                    if (updates.showPopup) UpdateDialog(updates)
                 }
             }
         }
@@ -54,4 +58,7 @@ class MainActivity : ComponentActivity() {
     // Music stops when the app goes to the background and picks up again on return.
     override fun onStart() { super.onStart(); vm.music.resume() }
     override fun onStop() { vm.music.pause(); super.onStop() }
+
+    // Coming back from Android's "Install unknown apps" switch picks the update back up.
+    override fun onResume() { super.onResume(); updates.onResume() }
 }

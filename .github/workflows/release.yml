@@ -54,10 +54,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          # Every release's APK has the same name, so
+          # https://github.com/Jonahbyu/mahjong/releases/latest/download/mahjong.apk
+          # always downloads the newest build. That is the link the app's Share button sends.
           tag="v0.1.${VERSION_CODE}"
-          apk="mahjong-${tag}.apk"
-          cp app/build/outputs/apk/release/app-release.apk "$apk"
-          gh release create "$tag" "$apk" \
+          cp app/build/outputs/apk/release/app-release.apk mahjong.apk
+          notes="$(git log -1 --pretty=%B | grep -v '^Co-Authored-By:')
+
+          **Install:** on an Android phone, tap mahjong.apk below, then open it and allow the install."
+          gh release create "$tag" mahjong.apk \
             --title "Mahjong ${tag}" \
-            --notes "$(git log -1 --pretty=%B)" \
+            --notes "$notes" \
             --target "$GITHUB_SHA"

@@ -46,6 +46,7 @@ fun SettingsScreen(vm: TableViewModel, updates: UpdateViewModel, onClose: () -> 
             Modifier.verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
+            ShareSection()
             Section("Music volume") {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Slider(

@@ -21,6 +21,9 @@ import java.net.URL
 object Updater {
     private const val LATEST = "https://api.github.com/repos/Jonahbyu/mahjong/releases/latest"
 
+    /** Always downloads the newest APK (the workflow names every release's file mahjong.apk). */
+    const val SHARE_URL = "https://github.com/Jonahbyu/mahjong/releases/latest/download/mahjong.apk"
+
     data class Release(val versionCode: Long, val name: String, val apkUrl: String, val apkBytes: Long)
 
     fun installedVersionCode(context: Context): Long =

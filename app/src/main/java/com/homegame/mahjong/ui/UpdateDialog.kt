@@ -50,7 +50,7 @@ fun UpdateDialog(updates: UpdateViewModel) {
                     Title("One-time step")
                     Body("Android needs your OK before Mahjong can install its own updates. On the next screen, turn on \"Allow from this source\", then come back.")
                     Buttons(
-                        primary = "Open settings" to { updates.openInstallPermission(context) },
+                        primary = "Allow" to { updates.openInstallPermission(context) },
                         secondary = "Later" to updates::later,
                     )
                 }
